@@ -1,25 +1,42 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
-import Home from '../views/Home.vue'
-
-const routes: Array<RouteRecordRaw> = [
+import { routerProtect } from '@/router/protect'
+import { App } from 'vue'
+const module: any = []
+const file = require.context('./module', true, /\.ts/)
+file.keys().forEach((key) => {
+  module.push(file(key).default || file(key))
+})
+export const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    name: 'Home',
-    component: Home
+    name: 'A',
+    redirect: '/home',
+    component: () => import('@/layout/index.vue'),
+    meta: {
+      title: '系统管理',
+      sort: 1
+    },
+    children: [
+      ...module
+    ]
   },
   {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
+    path: '/login',
+    name: 'login',
+    meta: {
+      title: '登录',
+      icon: 'el-icon-coordinate'
+    },
+    component: () => import('@/views/share/login.vue')
   }
 ]
-
 const router = createRouter({
   history: createWebHashHistory(),
   routes
 })
 
+export function setupRouter (app: App) {
+  app.use(router)
+  routerProtect(router)
+}
 export default router
